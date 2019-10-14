@@ -1,6 +1,6 @@
 # SIF: Simple Installer Framework
 
-*Simply, an alternative to Qt Installer Framework*
+*A Simple, easy-to-use, highly customizable Installer Framework built with Qt*
 
 Copyright © 2019 Carlos Enrique Pérez Sánchez
 
@@ -28,7 +28,7 @@ The framework uses Qt. Any Qt 5 version should work, but I always recommend havi
 
 ## How to add it to my project?
 
-You can compile **SIF** from Qt Creator or with `qmake .` in the root of the project, and link the resulting static library to your project. For example, if you have the library `SimpleInstallerFramework.a` and its header file copied in `lib/SimpleInstallerFramework/` inside the root of your project, then you can link to it by simply adding to your `.pro` file:
+You can compile **SIF** from Qt Creator or running `qmake` then `make` (or equivalent) in the root of the project, and link the resulting static library to your project. For example, if you have the library `SimpleInstallerFramework.a` and its header file copied in `lib/SimpleInstallerFramework/` inside the root of your project, then you can link to it by simply adding to your `.pro` file:
 
 ```
 LIBS += -L$$PWD/lib/SimpleInstallerFramework/ -lSimpleInstallerFramework
