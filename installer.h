@@ -68,6 +68,8 @@ public slots:
     void requestProgress();
     void cancel();
 
+    bool addWindowsStartMenuEntry(const QString &filePath, const QString &linkName = QCoreApplication::applicationName());
+
 signals:
     void installationPathChanged(const QString &value);
     void installationPathIsValidChanged(bool value);
