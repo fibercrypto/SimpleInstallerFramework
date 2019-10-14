@@ -1,0 +1,39 @@
+# C extensions
+*.so
+
+# Distribution / packaging
+
+# Configuration
+*.vscode
+*.pro.user*
+CMake*
+
+# Translations
+
+# celery beat schedule file
+celerybeat-schedule
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Linux stuff
+.directory
+
+# Jetbrains IDE's
+.idea 
+
+# Qt build leftovers
+moc_predefs.h
+moc_installer.cpp
+installer.o moc_installer.o
+*~
+*.core
+Makefile
+.qmake.stash
+*libSimpleInstallerFramework.a
