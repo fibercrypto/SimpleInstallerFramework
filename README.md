@@ -130,13 +130,13 @@ root/
 
     The error code of the last operation that failed. You should use `installationPathErrorString` to show human-readable error messages. Can be one of:
 
-    InstallationPathError   |  | Description
-    -------------------------- | ---------------
-    NoPathError             |  | No error, all is Ok
-    PathNotSpecified        |  | No path specified
-    PathIsAFile             |  | Path is a file
-    PathIsNotAbsolute       |  | Path is not absolute
-    PathIsNotEmpty          |  | Path is not empty
+    InstallationPathError    | Description
+    ------------------------ | --------------------
+    NoPathError              | No error, all is Ok
+    PathNotSpecified         | No path specified
+    PathIsAFile              | Path is a file
+    PathIsNotAbsolute        | Path is not absolute
+    PathIsNotEmpty           | Path is not empty
 
 * `[read-only] installationPathErrorString: QString`
 
@@ -154,15 +154,15 @@ root/
 
     The status of the installer. Can be one of:
 
-    InstallerInstallerStatus|  | Description
-    -------------------------- | ---------------
-    Idle                    |  | The installer is idle (i.e., in stand-by)
-    FetchingFiles           |  | Searching for files to install
-    ExtractingPackages      |  | Extracting files to the selected installation path
-    ExtractionFinished      |  | The extraction finished successfully
-    ExtractionCanceled      |  | The extraction was canceled
-    RevertingInstallation   |  | The installation has been canceled and it's being reverted
-    ErrorOccurred           |  | An error occurred
+    InstallerInstallerStatus | Description
+    ------------------------ | ---------------
+    Idle                     | The installer is idle (i.e., in stand-by)
+    FetchingFiles            | Searching for files to install
+    ExtractingPackages       | Extracting files to the selected installation path
+    ExtractionFinished       | The extraction finished successfully
+    ExtractionCanceled       | The extraction was canceled
+    RevertingInstallation    | The installation has been canceled and it's being reverted
+    ErrorOccurred            | An error occurred
 
 * `[read-only] totalSize: long long int`
 
