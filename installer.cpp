@@ -114,6 +114,39 @@ void Installer::cancel()
     extractionCanceled = true;
 }
 
+bool Installer::addWindowsStartMenuEntry(const QString &filePath, const QString &linkName)
+{
+    if (currentOS != QOperatingSystemVersion::Windows) {
+        qInfo("Start menu entries can only be created on Windows");
+        return false;
+    }
+    QString startMenuPath      = QStandardPaths::standardLocations(QStandardPaths::ApplicationsLocation).first();
+    QString startMenuGroupPath = startMenuPath + '/' + QCoreApplication::organizationName();
+    QString startMenuAppPath   = startMenuGroupPath + '/' + QCoreApplication::applicationName();
+    QDir d;
+    if (!d.exists(startMenuAppPath)) {
+        if (!d.mkpath(startMenuAppPath)) {
+            qCritical("Cannot create folder \'%s\'", qPrintable(startMenuAppPath));
+            return false;
+        }
+    }
+
+    QString linkFilePath = startMenuAppPath + '/' + linkName + ".lnk";
+    if (QFile::exists(linkFilePath)) {
+        qWarning("Link \'%s\' already exists, so it will be replaced", qPrintable(linkFilePath));
+        if (!QFile::remove(linkFilePath)) {
+            qCritical("Cannot remove link \'%s\'", qPrintable(linkFilePath));
+            return false;
+        }
+    }
+    QFile fileToLink(filePath);
+    if (!fileToLink.link(linkFilePath)) {
+        qCritical("Cannot create link \'%s\' pointing to \'%s\': %s", qPrintable(linkFilePath), qPrintable(filePath), qPrintable(fileToLink.errorString()));
+        return false;
+    }
+    return true;
+}
+
 void Installer::extractAll()
 {
     QFuture<QPair<QFileInfoList, qint64>> futureSeeking = QtConcurrent::run([=]() {
