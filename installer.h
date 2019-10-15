@@ -69,6 +69,8 @@ public slots:
     void cancel();
     void addWindowsControlPanelUninstallerEntry(const QString &applicationDescription, const QString &applicationFilePath = QString(), const QString &uninstallerFilePath = QString(), const QString &modifierApplicationFilePath = QString(), const QString &repairerApplicationFilePath = QString(), const QString &moreInfoUrl = QString());
 
+    bool addWindowsStartMenuEntry(const QString &filePath, const QString &linkName = QCoreApplication::applicationName());
+
 signals:
     void installationPathChanged(const QString &value);
     void installationPathIsValidChanged(bool value);
