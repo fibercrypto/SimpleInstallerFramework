@@ -114,6 +114,42 @@ void Installer::cancel()
     extractionCanceled = true;
 }
 
+
+void Installer::addWindowsControlPanelUninstallerEntry(const QString &applicationDescription, const QString &applicationFilePath, const QString &uninstallerFilePath, const QString &modifierApplicationFilePath, const QString &repairerApplicationFilePath, const QString &moreInfoUrl)
+{
+    if (currentOS != QOperatingSystemVersion::Windows) {
+        qInfo("Start menu entries can only be created on Windows");
+        return;
+    }
+
+    QString newApplicationFilePath = applicationFilePath;
+    if (applicationFilePath.isEmpty()) {
+        newApplicationFilePath = installationPath + '/' + QCoreApplication::applicationName() + ".exe";
+    }
+
+    QString newUninstallerFilePath = uninstallerFilePath;
+    if (uninstallerFilePath.isEmpty()) {
+        newUninstallerFilePath = installationPath + "/uninstall.exe";
+    }
+
+    // for system-wide installations, use `QSettings::SystemScope`
+    QSettings sUnins(QSettings::UserScope, QDir::toNativeSeparators("Microsoft/Windows/CurrentVersion/Uninstall"),QCoreApplication::applicationName());
+    sUnins.setValue("Comments", applicationDescription);
+    sUnins.setValue("DisplayIcon", QDir::toNativeSeparators(newApplicationFilePath));
+    sUnins.setValue("DisplayName", QCoreApplication::applicationName());
+    sUnins.setValue("DisplayVersion", QCoreApplication::applicationVersion());
+    sUnins.setValue("EstimatedSize", int(totalSize/1000)); // the size is in KB
+    sUnins.setValue("InstallDate", QDateTime::currentDateTime().toString(Qt::SystemLocaleShortDate));
+    sUnins.setValue("InstallLocation", QDir::toNativeSeparators(installationPath));
+    sUnins.setValue("ModifyPath", modifierApplicationFilePath);
+    sUnins.setValue("RepairPath", repairerApplicationFilePath);
+    sUnins.setValue("NoModify", modifierApplicationFilePath.isEmpty());
+    sUnins.setValue("NoRepair", repairerApplicationFilePath.isEmpty());
+    sUnins.setValue("Publisher", QCoreApplication::organizationName());
+    sUnins.setValue("UninstallString", QDir::toNativeSeparators(newUninstallerFilePath));
+    sUnins.setValue("UrlInfoAbout", moreInfoUrl);
+}
+
 bool Installer::addWindowsStartMenuEntry(const QString &filePath, const QString &linkName)
 {
     if (currentOS != QOperatingSystemVersion::Windows) {
