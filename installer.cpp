@@ -114,6 +114,79 @@ void Installer::cancel()
     extractionCanceled = true;
 }
 
+bool Installer::addDesktopShortcut(const QString &linkName, const QString &executableEntryFilePath)
+{
+    QString newExecutableEntryFilePath(executableEntryFilePath);
+    if (executableEntryFilePath.isEmpty()) {
+        if (currentOS == QOperatingSystemVersion::Windows || currentOS == QOperatingSystemVersion::MacOS) {
+            newExecutableEntryFilePath = installationPath + '/' + QCoreApplication::applicationName() + currentOS == QOperatingSystemVersion::Windows ? ".exe" : ".app";
+        } else { // a desktop entry
+            // for now, system-wide installations are not supported
+            newExecutableEntryFilePath = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation) + '/' + QCoreApplication::organizationName() + '-' + QCoreApplication::applicationName() + ".desktop";
+        }
+    }
+
+    QString desktopPath = QStandardPaths::standardLocations(QStandardPaths::DesktopLocation).first();
+    QString linkDesktop = desktopPath + '/' + (linkName.isEmpty() ? newExecutableEntryFilePath : linkName);
+
+    if (currentOS == QOperatingSystemVersion::Windows) {
+        linkDesktop += ".lnk";
+    }
+    if (QFile::exists(linkDesktop)) {
+        if (!QFile::remove(linkDesktop)) {
+            qCritical("Cannot remove link \'%s\'", qPrintable(linkDesktop));
+            return false;
+        }
+    }
+
+    QFile executableEntryFile(newExecutableEntryFilePath);
+    if (!executableEntryFile.link(linkDesktop)) {
+        qCritical("Cannot create link \'%s\' pointing to \'%s\': %s", qPrintable(linkDesktop), qPrintable(newExecutableEntryFilePath), qPrintable(executableEntryFile.errorString()));
+        return false;
+    }
+
+    return true;
+}
+
+bool Installer::addWindowsStartMenuEntry(const QString &linkName, const QString &filePath)
+{
+    if (currentOS != QOperatingSystemVersion::Windows) {
+        qInfo("Start menu entries can only be created on Windows");
+        return false;
+    }
+
+    QString newFilePath(filePath);
+    if (filePath.isEmpty()) {
+        newFilePath = installationPath + '/' + QCoreApplication::applicationName() + ".exe";
+    }
+
+    QString startMenuPath      = QStandardPaths::standardLocations(QStandardPaths::ApplicationsLocation).first();
+    QString startMenuGroupPath = startMenuPath + '/' + QCoreApplication::organizationName();
+    QString startMenuAppPath   = startMenuGroupPath + '/' + QCoreApplication::applicationName();
+    QDir d;
+    if (!d.exists(startMenuAppPath)) {
+        if (!d.mkpath(startMenuAppPath)) {
+            qCritical("Cannot create folder \'%s\'", qPrintable(startMenuAppPath));
+            return false;
+        }
+    }
+
+    QString linkFilePath = startMenuAppPath + '/' + linkName + ".lnk";
+    if (QFile::exists(linkFilePath)) {
+        qWarning("Link \'%s\' already exists, so it will be replaced", qPrintable(linkFilePath));
+        if (!QFile::remove(linkFilePath)) {
+            qCritical("Cannot remove link \'%s\'", qPrintable(linkFilePath));
+            return false;
+        }
+    }
+    QFile fileToLink(newFilePath);
+    if (!fileToLink.link(linkFilePath)) {
+        qCritical("Cannot create link \'%s\' pointing to \'%s\': %s", qPrintable(linkFilePath), qPrintable(newFilePath), qPrintable(fileToLink.errorString()));
+        return false;
+    }
+    return true;
+}
+
 
 void Installer::addWindowsControlPanelUninstallerEntry(const QString &applicationDescription, const QString &applicationFilePath, const QString &uninstallerFilePath, const QString &modifierApplicationFilePath, const QString &repairerApplicationFilePath, const QString &moreInfoUrl)
 {
@@ -122,7 +195,7 @@ void Installer::addWindowsControlPanelUninstallerEntry(const QString &applicatio
         return;
     }
 
-    QString newApplicationFilePath = applicationFilePath;
+    QString newApplicationFilePath(applicationFilePath);
     if (applicationFilePath.isEmpty()) {
         newApplicationFilePath = installationPath + '/' + QCoreApplication::applicationName() + ".exe";
     }
@@ -148,39 +221,6 @@ void Installer::addWindowsControlPanelUninstallerEntry(const QString &applicatio
     sUnins.setValue("Publisher", QCoreApplication::organizationName());
     sUnins.setValue("UninstallString", QDir::toNativeSeparators(newUninstallerFilePath));
     sUnins.setValue("UrlInfoAbout", moreInfoUrl);
-}
-
-bool Installer::addWindowsStartMenuEntry(const QString &filePath, const QString &linkName)
-{
-    if (currentOS != QOperatingSystemVersion::Windows) {
-        qInfo("Start menu entries can only be created on Windows");
-        return false;
-    }
-    QString startMenuPath      = QStandardPaths::standardLocations(QStandardPaths::ApplicationsLocation).first();
-    QString startMenuGroupPath = startMenuPath + '/' + QCoreApplication::organizationName();
-    QString startMenuAppPath   = startMenuGroupPath + '/' + QCoreApplication::applicationName();
-    QDir d;
-    if (!d.exists(startMenuAppPath)) {
-        if (!d.mkpath(startMenuAppPath)) {
-            qCritical("Cannot create folder \'%s\'", qPrintable(startMenuAppPath));
-            return false;
-        }
-    }
-
-    QString linkFilePath = startMenuAppPath + '/' + linkName + ".lnk";
-    if (QFile::exists(linkFilePath)) {
-        qWarning("Link \'%s\' already exists, so it will be replaced", qPrintable(linkFilePath));
-        if (!QFile::remove(linkFilePath)) {
-            qCritical("Cannot remove link \'%s\'", qPrintable(linkFilePath));
-            return false;
-        }
-    }
-    QFile fileToLink(filePath);
-    if (!fileToLink.link(linkFilePath)) {
-        qCritical("Cannot create link \'%s\' pointing to \'%s\': %s", qPrintable(linkFilePath), qPrintable(filePath), qPrintable(fileToLink.errorString()));
-        return false;
-    }
-    return true;
 }
 
 void Installer::extractAll()

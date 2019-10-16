@@ -209,6 +209,34 @@ root/
 
     Call this function to cancel the extraction process. The installer will then enter the `InstallerInstallerStatus::RevertingInstallation` status and start deleting the installed files. After that, the `installerStatus` property will be set to `InstallerInstallerStatus::ExtractionCanceled`.
 
+* `[slot] bool Installer::addDesktopShortcut(const QString &linkName = QCoreApplication::applicationName(), const QString &executableEntryFilePath = QString())`
+
+    Call this function to add a shortcut file named `linkName` in the desktop. The links points to `executableEntryFilePath`. By default, `linkName` is the application's name, and `executableEntryFilePath` is empty, which means that it points to the appropriate files depending of the operating system where the installer is running:
+
+    OS      | Executable entry file path
+    ------- | ------------------------------------------------------------------------
+    Windows | `<Installation path>/<Application Name>.exe`
+    macOS   | `<Installation path>/<Application Name>.app`
+    Unix    | `<Applications Location>/<Organization Name>-<Application Name>.desktop`
+
+    We strongly recommend to not specify a value to `executableEntryFilePath`, unless the name of the executable do not match the name of the application as set with `QCoreApplication::setApplicationName()`.
+
+* `[slot] bool Installer::addWindowsStartMenuEntry(const QString &linkName = QCoreApplication::applicationName(), const QString &filePath = QString())`
+
+    Call this function to add an entry named `linkName` (the application's name by default) that points to `filePath` to the Windows Start Menu. If the `filePath` is not specified, it defaults to `<Installation path>/<Application Name>.exe`. This function does nothing on non-Windows operating systems.
+
+* `[slot] void Installer::addWindowsControlPanelUninstallerEntry(const QString &applicationDescription, const QString &applicationFilePath = QString(), const QString &uninstallerFilePath = QString(), const QString &modifierApplicationFilePath = QString(), const QString &repairerApplicationFilePath = QString(), const QString &moreInfoUrl = QString())`
+
+    Call this function to add an entry (usually for an uninstaller) in the Control Panel of a Windows operating system. A brief description of the application must be provided in `applicationDescription`. The rest of arguments are optional and will be explained bellow:
+
+    * `applicationFilePath` is the application which icon will be shown in the entry, and if not specified, defaults to `<Installation path>/<Application Name>.exe`.
+    * `uninstallerFilePath` is the path to the executable that will be used as uninstaller. If not specified, defaults to `<Installation path>/uninstall.exe`.
+    * `modifierApplicationFilePath` is the path to the executable that will be used to modify the existing installation, usually an updater. By default, it's empty, which means that no application is provided.
+    * `repairerApplicationFilePath` is the path to the executable that will be used to repair the existing installation. By default, it's empty, which means that no application is provided.
+    * `moreInfoUrl` is an URL that will be used to obtain more information about the application. Empty by default.
+
+    This function does nothing on non-Windows operating systems.
+
 
 ### Signals:
 
@@ -245,17 +273,8 @@ root/
 
 There's my *TODO* list:
 
-* **Windows:**
-    * Add start menu entry
-    * Add control panel entry
-    * Add desktop shortcut
-
-* **macOS:**
-    * Add desktop shortcut
-
-* **Linux:**
+* **Unix:**
     * Add desktop entry
-    * Add desktop shortcut
 
 
 ## Licensing

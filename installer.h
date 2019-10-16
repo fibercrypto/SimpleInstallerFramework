@@ -67,7 +67,8 @@ public slots:
     void extractAll();
     void requestProgress();
     void cancel();
-    bool addWindowsStartMenuEntry(const QString &filePath, const QString &linkName = QCoreApplication::applicationName());
+    bool addDesktopShortcut(const QString &linkName = QCoreApplication::applicationName(), const QString &executableEntryFilePath = QString());
+    bool addWindowsStartMenuEntry(const QString &linkName = QCoreApplication::applicationName(), const QString &filePath = QString());
     void addWindowsControlPanelUninstallerEntry(const QString &applicationDescription, const QString &applicationFilePath = QString(), const QString &uninstallerFilePath = QString(), const QString &modifierApplicationFilePath = QString(), const QString &repairerApplicationFilePath = QString(), const QString &moreInfoUrl = QString());
 
 signals:

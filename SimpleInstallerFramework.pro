@@ -38,3 +38,8 @@ unix {
     target.path = /usr/lib
     INSTALLS += target
 }
+
+DISTFILES += \
+    CHANGELOG.md \
+    LICENSE.GPLv3 \
+    README.md
