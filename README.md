@@ -85,7 +85,7 @@ root/
 
   Access descriptors: `getInstallationPath()` and `setInstallationPath()`
 
-  Notifier signal: installationPathChanged(const QString &)
+  Notifier signal: `installationPathChanged(const QString &)`
     
     This is the path where you want to install your software. By default, it chooses the appropriate path for you Operating System:
 
@@ -106,7 +106,7 @@ root/
 
   Access descriptors: `getInstallationPathIsValid()`
 
-  Notifier signal: installationPathIsValidChanged(bool)
+  Notifier signal: `installationPathIsValidChanged(bool)`
 
     This property is updated when the `installationPath` changes. It is `true` when the installation path is valid, and `false` otherwise. You must check the state of this property when you set the installation path:
 
@@ -126,7 +126,7 @@ root/
 
   Access descriptors: `getInstallationPathError()`
 
-  Notifier signal: installationPathErrorChanged(Installer::InstallationPathError)
+  Notifier signal: `installationPathErrorChanged(Installer::InstallationPathError)`
 
     The error code of the last operation that failed. You should use `installationPathErrorString` to show human-readable error messages. Can be one of:
 
@@ -142,7 +142,7 @@ root/
 
   Access descriptors: `getInstallationPathErrorString()`
 
-  Notifier signal: installationPathErrorStringChanged(const QString &)
+  Notifier signal: `installationPathErrorStringChanged(const QString &)`
 
     Human-readable description of the error code represented by `installationPathError`.
 
@@ -150,7 +150,7 @@ root/
 
   Access descriptors: `getInstallerStatus()`
 
-  Notifier signal: installerStatusChanged(Installer::InstallerStatus)
+  Notifier signal: `installerStatusChanged(Installer::InstallerStatus)`
 
     The status of the installer. Can be one of:
 
@@ -168,7 +168,7 @@ root/
 
   Access descriptors: `getTotalSize()`
 
-  Notifier signal: totalSizeChanged(long long int)
+  Notifier signal: `totalSizeChanged(long long int)`
 
     The total size of all files that are going to be installed.
 
