@@ -1,11 +1,11 @@
-/*
- * SIF: Simple Installer Framework
- * Simply, an alternative to Qt Installer Framework
- *
- * Copyright © 2019 Carlos Enrique Pérez Sánchez
- *
- * This project is under the GPLv3 license
- */
+/*****************************************************
+ * SIF: Simple Installer Framework                   *
+ * Simply, an alternative to Qt Installer Framework  *
+ *                                                   *
+ * Copyright © 2019 Simelo.Tech                         *
+ *                                                   *
+ * This project is under the GPLv3 license           *
+ *****************************************************/
 
 #include "installer.h"
 
@@ -18,6 +18,7 @@ Installer::Installer(QObject *parent) : QObject(parent)
     QString currentOSName = currentOS == QOperatingSystemVersion::Windows ? "windows" :
                             currentOS == QOperatingSystemVersion::MacOS ? "macos" : "unix";
     dataPath = QString(":/") + currentOSName + "/data";
+    desktopEntriesPath = QString(":/") + currentOSName + "/desktop_entries";
 
     setupInitialInstallationPath();
     setupExtractingProcess();
@@ -122,8 +123,19 @@ bool Installer::addDesktopShortcut(const QString &linkName, const QString &execu
             newExecutableEntryFilePath = installationPath + '/' + QCoreApplication::applicationName() + currentOS == QOperatingSystemVersion::Windows ? ".exe" : ".app";
         } else { // a desktop entry
             // for now, system-wide installations are not supported
-            newExecutableEntryFilePath = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation) + '/' + QCoreApplication::organizationName() + '-' + QCoreApplication::applicationName() + ".desktop";
+            newExecutableEntryFilePath = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation) + '/' + QCoreApplication::applicationName() + ".desktop";
         }
+    } else if (currentOS == QOperatingSystemVersion::Windows && !newExecutableEntryFilePath.endsWith(".exe")) {
+        newExecutableEntryFilePath += ".exe";
+    } else if (currentOS == QOperatingSystemVersion::MacOS && !newExecutableEntryFilePath.endsWith(".app")) {
+        newExecutableEntryFilePath += ".app";
+    } else if (!newExecutableEntryFilePath.endsWith(".desktop")) {
+        newExecutableEntryFilePath += ".desktop";
+    }
+
+    if (!QFile::exists(newExecutableEntryFilePath)) {
+        qCritical("The file \'%s\' does not exists", qPrintable(newExecutableEntryFilePath));
+        return false;
     }
 
     QString desktopPath = QStandardPaths::standardLocations(QStandardPaths::DesktopLocation).first();
@@ -160,7 +172,7 @@ bool Installer::addWindowsStartMenuEntry(const QString &linkName, const QString 
         newFilePath = installationPath + '/' + QCoreApplication::applicationName() + ".exe";
     }
 
-    QString startMenuPath      = QStandardPaths::standardLocations(QStandardPaths::ApplicationsLocation).first();
+    QString startMenuPath      = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation);
     QString startMenuGroupPath = startMenuPath + '/' + QCoreApplication::organizationName();
     QString startMenuAppPath   = startMenuGroupPath + '/' + QCoreApplication::applicationName();
     QDir d;
@@ -187,11 +199,51 @@ bool Installer::addWindowsStartMenuEntry(const QString &linkName, const QString 
     return true;
 }
 
+bool Installer::addDesktopEntry(const QString &name)
+{
+    if (currentOS == QOperatingSystemVersion::Windows || currentOS == QOperatingSystemVersion::MacOS) {
+        qInfo("Desktop entries cannot be created on Windows or macOS");
+        return false;
+    }
+
+    QString newName(name);
+    if (!newName.endsWith(".desktop")) {
+        newName += ".desktop";
+    }
+
+    QString desktopEntrySourceFilePath = desktopEntriesPath + '/' + newName;
+    QFile desktopEntrySourceFile(desktopEntrySourceFilePath);
+    if (!desktopEntrySourceFile.exists(desktopEntrySourceFilePath)) {
+        qCritical("The file \'%s\' does not exists", qPrintable(desktopEntrySourceFilePath));
+        return false;
+    }
+
+    QString desktopEntryPath = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation);
+    QString desktopEntryFilePath = desktopEntryPath + '/' + newName;
+
+    if (QFile::exists(desktopEntryFilePath)) {
+        qWarning("The desktop entry \'%s\' already exists. Attempting to remove it before copy it...", qPrintable(desktopEntryFilePath));
+        if (QFile::remove(desktopEntryFilePath)) {
+            qWarning("Success on removing the old file");
+        } else {
+            qCritical("Failed to remove the old file");
+            return false;
+        }
+    }
+
+    if (!desktopEntrySourceFile.copy(desktopEntryFilePath)) {
+        qCritical("Cannot create file \'%s\': %s", qPrintable(desktopEntryFilePath), qPrintable(desktopEntrySourceFile.errorString()));
+        return false;
+    }
+
+    return true;
+}
+
 
 void Installer::addWindowsControlPanelUninstallerEntry(const QString &applicationDescription, const QString &applicationFilePath, const QString &uninstallerFilePath, const QString &modifierApplicationFilePath, const QString &repairerApplicationFilePath, const QString &moreInfoUrl)
 {
     if (currentOS != QOperatingSystemVersion::Windows) {
-        qInfo("Start menu entries can only be created on Windows");
+        qInfo("Control Panel program entries can only be created on Windows");
         return;
     }
 
@@ -258,7 +310,26 @@ QPair<QFileInfoList, qint64> Installer::findFilesToExtract(const QString &path)
         pendingDirectoriesPath.removeFirst();
     }
 
+    // now add the size of additional files
+    for (auto pair : additionalFiles) {
+        size += QFileInfo(pair.first).size();
+    }
+
     return { files, size };
+}
+
+bool Installer::addFileToExtract(const QString &from, const QString &to)
+{
+    if (installerStatus != Idle) {
+        qCritical("Files can only be added in IDLE installer status");
+        return false;
+    } else if (!QFile::exists(from)) {
+        qCritical("File \'%s\' doesn't exists", qPrintable(from));
+        return false;
+    }
+
+    additionalFiles << QPair<QString, QString>(from, to);
+    return true;
 }
 
 bool Installer::extractFiles()
@@ -283,6 +354,22 @@ bool Installer::extractFiles()
         }
         extractedFiles.append(QFileInfo(destinationFilePath));
     }
+
+    // extract additional files
+    for (auto pair : additionalFiles) {
+        QString origin = pair.first;
+        QString destination = pair.second;
+        QPair<QFile::FileError, QString> singleExtractionResult = extractSingleFile(origin, destination);
+        if (extractionCanceled) {
+            revertInstallation();
+            return false;
+        } else if (singleExtractionResult.first != QFile::NoError) {
+            emit extractionError(singleExtractionResult.first, singleExtractionResult.second);
+            return false;
+        }
+        extractedFiles.append(QFileInfo(destination));
+    }
+
     return true;
 }
 

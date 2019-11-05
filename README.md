@@ -1,8 +1,8 @@
-# SIF: Simple Installer Framework
+﻿# SIF: Simple Installer Framework
 
 *A Simple, easy-to-use, highly customizable Installer Framework built with Qt*
 
-Copyright © 2019 Carlos Enrique Pérez Sánchez
+Copyright © 2019 Simelo.Tech
 
 *This project is under the GPLv3 license*
 
@@ -132,11 +132,11 @@ root/
 
     InstallationPathError    | Description
     ------------------------ | --------------------
-    NoPathError              | No error, all is Ok
-    PathNotSpecified         | No path specified
-    PathIsAFile              | Path is a file
-    PathIsNotAbsolute        | Path is not absolute
-    PathIsNotEmpty           | Path is not empty
+    `NoPathError`            | No error, all is Ok
+    `PathNotSpecified`       | No path specified
+    `PathIsAFile`            | Path is a file
+    `PathIsNotAbsolute`      | Path is not absolute
+    `PathIsNotEmpty`         | Path is not empty
 
 * `[read-only] installationPathErrorString: QString`
 
@@ -156,13 +156,13 @@ root/
 
     InstallerInstallerStatus | Description
     ------------------------ | ---------------
-    Idle                     | The installer is idle (i.e., in stand-by)
-    FetchingFiles            | Searching for files to install
-    ExtractingPackages       | Extracting files to the selected installation path
-    ExtractionFinished       | The extraction finished successfully
-    ExtractionCanceled       | The extraction was canceled
-    RevertingInstallation    | The installation has been canceled and it's being reverted
-    ErrorOccurred            | An error occurred
+    `Idle`                   | The installer is idle (i.e., in stand-by)
+    `FetchingFiles`          | Searching for files to install
+    `ExtractingPackages`     | Extracting files to the selected installation path
+    `ExtractionFinished`     | The extraction finished successfully
+    `ExtractionCanceled`     | The extraction was canceled
+    `RevertingInstallation`  | The installation has been canceled and it's being reverted
+    `ErrorOccurred`          | An error occurred
 
 * `[read-only] totalSize: long long int`
 
@@ -191,7 +191,7 @@ root/
 
 * `QString Installer::getDataPath()`
 
-    Get the path where the installer search for files to install, by default in the resource path `":/os_name/data"`. For example, if you're on *Windows*, it search in `":/windows/data"`, if you're on *macOS*, it search in `":/macos/data"` and under a *Unix* (not *Darwin*) system it search in `":/unix/data"`.
+    Returns the path where the installer search for files to install, by default in the resource path `":/os_name/data"`. For example, if you're on *Windows*, it search in `":/windows/data"`, if you're on *macOS*, it search in `":/macos/data"` and under a *Unix* (not *Darwin*) system it search in `":/unix/data"`.
 
 * `Installer::setDataPath(const QString &newDataPath)`
 
@@ -209,6 +209,14 @@ root/
 
     Call this function to cancel the extraction process. The installer will then enter the `InstallerInstallerStatus::RevertingInstallation` status and start deleting the installed files. After that, the `installerStatus` property will be set to `InstallerInstallerStatus::ExtractionCanceled`.
 
+* `[slot] bool Installer::addFileToExtract(const QString &from, const QString &to)`
+
+    Call this function to add more files to the extraction list. During installation, the file will be copied from the filepath pointed by `from` to the filepath pointed by `to`.  
+    This is useful to install optional components, for example, you may want to optionally install the source code of your application in a zipped folder or a tarball. Another good use is to reduce the installer size if the same file must be copied to multiple locations, because you can include the file only once in resources, and add various destinations.  
+    This function must be called **before** the fetching or extraction starts, i.e. when the installer is in the `Idle` status.  
+    The total size of the files added with this function is also added to the total size of the installation.  
+    Returns `true` if the file pointed by `from` exists, `false` otherwise.
+
 * `[slot] bool Installer::addDesktopShortcut(const QString &linkName = QCoreApplication::applicationName(), const QString &executableEntryFilePath = QString())`
 
     Call this function to add a shortcut file named `linkName` in the desktop. The links points to `executableEntryFilePath`. By default, `linkName` is the application's name, and `executableEntryFilePath` is empty, which means that it points to the appropriate files depending of the operating system where the installer is running:
@@ -217,13 +225,22 @@ root/
     ------- | ------------------------------------------------------------------------
     Windows | `<Installation path>/<Application Name>.exe`
     macOS   | `<Installation path>/<Application Name>.app`
-    Unix    | `<Applications Location>/<Organization Name>-<Application Name>.desktop`
+    Unix    | `<Applications Location>/<Application Name>.desktop`
 
-    We strongly recommend to not specify a value to `executableEntryFilePath`, unless the name of the executable do not match the name of the application as set with `QCoreApplication::setApplicationName()`.
+    We strongly recommend to not specify a value to `executableEntryFilePath`, unless the name of the executable do not match the name of the application as set with `QCoreApplication::setApplicationName()`.  
+    On Unix, a desktop entry must be previously created with `addDesktopEntry` for this function to work.  
+    Returns `true` if the shortcut is created, `false` otherwise.
 
 * `[slot] bool Installer::addWindowsStartMenuEntry(const QString &linkName = QCoreApplication::applicationName(), const QString &filePath = QString())`
 
-    Call this function to add an entry named `linkName` (the application's name by default) that points to `filePath` to the Windows Start Menu. If the `filePath` is not specified, it defaults to `<Installation path>/<Application Name>.exe`. This function does nothing on non-Windows operating systems.
+    Call this function to add an entry named `linkName` (the application's name by default) that points to `filePath` to the Windows Start Menu. If the `filePath` is not specified, it defaults to `<Installation path>/<Application Name>.exe`. Returns `true` on success, `false` otherwise. This function does nothing on non-Windows operating systems and returns `false`.
+
+* `[slot] bool Installer::addDesktopEntry(const QString &name = QCoreApplication::applicationName())`
+
+    Call this function to add a desktop entry named `name` (the application's name by default).  
+    The installer search for desktop entries in `:/os_name/desktop_entries`. For example, on Linux, a desktop entry named `My App` should be in `:/linux/desktop_entries/My App.desktop`.  
+    If an entry with name `name` is found, it is copied to an appropriate location (currently `<Applications Location>`, i.e. `~/.local/share/applications`) and returns `true`. If the entry is not found or cannot be copied, returns `false`.
+    This function does nothing on Windows or macOS operating systems and returns `false`.
 
 * `[slot] void Installer::addWindowsControlPanelUninstallerEntry(const QString &applicationDescription, const QString &applicationFilePath = QString(), const QString &uninstallerFilePath = QString(), const QString &modifierApplicationFilePath = QString(), const QString &repairerApplicationFilePath = QString(), const QString &moreInfoUrl = QString())`
 
@@ -273,8 +290,8 @@ root/
 
 There's my *TODO* list:
 
-* **Unix:**
-    * Add desktop entry
+* **All platforms**
+    * Allow system-wide installation
 
 
 ## Licensing
@@ -284,4 +301,4 @@ This project is under the GPLv3 license (see [http://fsf.org/](http://fsf.org/) 
 
 ## Contact information
 
-e-mail: [thecrowporation@gmail.com](mailto:thecrowporation@gmail.com)
+e-mail: [contact@fibercryp.to](mailto:contact@fibercryp.to)

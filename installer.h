@@ -1,11 +1,11 @@
-/*
- * SIF: Simple Installer Framework
- * Simply, an alternative to Qt Installer Framework
- *
- * Copyright © 2019 Carlos Enrique Pérez Sánchez
- *
- * This project is under the GPLv3 license
- */
+/*****************************************************
+ * SIF: Simple Installer Framework                   *
+ * Simply, an alternative to Qt Installer Framework  *
+ *                                                   *
+ * Copyright © 2019 Simelo.Tech                         *
+ *                                                   *
+ * This project is under the GPLv3 license           *
+ *****************************************************/
 
 #ifndef INSTALLER_H
 #define INSTALLER_H
@@ -64,11 +64,13 @@ public:
     QOperatingSystemVersion::OSType getCurrentOS();
 
 public slots:
+    bool addFileToExtract(const QString &from, const QString &to);
     void extractAll();
     void requestProgress();
     void cancel();
     bool addDesktopShortcut(const QString &linkName = QCoreApplication::applicationName(), const QString &executableEntryFilePath = QString());
     bool addWindowsStartMenuEntry(const QString &linkName = QCoreApplication::applicationName(), const QString &filePath = QString());
+    bool addDesktopEntry(const QString &name = QCoreApplication::applicationName());
     void addWindowsControlPanelUninstallerEntry(const QString &applicationDescription, const QString &applicationFilePath = QString(), const QString &uninstallerFilePath = QString(), const QString &modifierApplicationFilePath = QString(), const QString &repairerApplicationFilePath = QString(), const QString &moreInfoUrl = QString());
 
 signals:
@@ -91,6 +93,7 @@ signals:
 
 private:
     QString dataPath; // stored in resources, not expose to QML
+    QString desktopEntriesPath; // stored in resources, not expose to QML
 
     QString installationPath; // expose to QML
     bool installationPathIsValid = false; // expose as "read only" to QML. Default invalid
@@ -117,6 +120,7 @@ private:
     // The following members are used to handle canceling
     QFileInfoList extractedFiles; // not expose to QML
     bool extractionCanceled = false; // not expose to QML
+    QList<QPair<QString, QString>> additionalFiles; // not expose to QML
 
     QFutureWatcher<QPair<QFileInfoList, qint64>> watcherSeeking; // not expose to QML
     QFutureWatcher<void> watcherExtracting; // not expose to QML
