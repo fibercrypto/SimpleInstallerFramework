@@ -1,16 +1,13 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2019-10-13T01:00:29
-#
-#
-# SIF: Simple Installer Framework
-# Simply, an alternative to Qt Installer Framework
-#
-# Copyright © 2019 Carlos Enrique Pérez Sánchez
-#
-# This project is under the GPLv3 license
-#
-#-------------------------------------------------
+#--------------------------------------------------#
+#                                                  #
+# SIF: Simple Installer Framework                  #
+# Simply, an alternative to Qt Installer Framework #
+#                                                  #
+# Copyright © 2019 Simelo.Tech                        #
+#                                                  #
+# This project is under the GPLv3 license          #
+#                                                  #
+#--------------------------------------------------#
 
 Qt += concurrent
 
@@ -34,10 +31,6 @@ SOURCES += \
 
 HEADERS += \
         installer.h
-unix {
-    target.path = /usr/lib
-    INSTALLS += target
-}
 
 DISTFILES += \
     CHANGELOG.md \
